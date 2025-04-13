@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Mini Windows 1.0 Project</title>
+  <title>Win1.0</title>
   <style>
     body, html {
       margin: 0;
@@ -13,13 +13,27 @@
       overflow: hidden;
     }
 
+    #boot-screen {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      width: 100%;
+      background: black;
+      color: lime;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
     #login-screen {
       position: absolute;
       top: 0; left: 0;
       height: 100%;
       width: 100%;
       background: linear-gradient(135deg, #4682b4, #1e90ff);
-      display: flex;
+      display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -81,6 +95,12 @@
       border-radius: 5px;
       box-shadow: 2px 2px 3px #000;
       cursor: pointer;
+      transition: background 0.3s, opacity 0.3s;
+    }
+
+    .icon:hover {
+      background: #ccc;
+      opacity: 0.8;
     }
 
     .window {
@@ -126,9 +146,21 @@
       resize: none;
       font-family: monospace;
     }
+
+    canvas {
+      border: 1px solid #000;
+    }
   </style>
 </head>
 <body>
+
+<!-- BOOT SCREEN -->
+<div id="boot-screen">
+  <p>Booting Mini Windows 1.0...</p>
+  <p>Checking memory... OK</p>
+  <p>Loading kernel... OK</p>
+  <p>Starting GUI... OK</p>
+</div>
 
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
@@ -143,9 +175,10 @@
 
 <!-- DESKTOP -->
 <div id="desktop">
-  <div class="icon" onclick="openApp('notepad')">Notepad</div>
-  <div class="icon" onclick="openApp('calculator')">Calc</div>
-  <div class="icon" onclick="openApp('about')">About</div>
+  <div class="icon" onclick="openApp('notepad')">📝<br>Notepad</div>
+  <div class="icon" onclick="openApp('calculator')">🧮<br>Calc</div>
+  <div class="icon" onclick="openApp('paint')">🎨<br>Paint</div>
+  <div class="icon" onclick="openApp('about')">ℹ️<br>About</div>
 
   <!-- NOTEPAD -->
   <div class="window" id="notepad">
@@ -158,14 +191,43 @@
     </div>
   </div>
 
-  <!-- CALCULATOR (Mock) -->
+  <!-- CALCULATOR -->
   <div class="window" id="calculator">
     <div class="title-bar">
       <span>Calculator</span>
       <button class="close-btn" onclick="closeApp('calculator')">X</button>
     </div>
     <div class="window-content">
-      <p>Not ready yet</p>
+      <input type="text" id="calc-display" readonly style="width:100%;margin-bottom:5px;" />
+      <div>
+        <button onclick="calcInput('1')">1</button>
+        <button onclick="calcInput('2')">2</button>
+        <button onclick="calcInput('3')">3</button>
+        <button onclick="calcInput('+')">+</button><br/>
+        <button onclick="calcInput('4')">4</button>
+        <button onclick="calcInput('5')">5</button>
+        <button onclick="calcInput('6')">6</button>
+        <button onclick="calcInput('-')">-</button><br/>
+        <button onclick="calcInput('7')">7</button>
+        <button onclick="calcInput('8')">8</button>
+        <button onclick="calcInput('9')">9</button>
+        <button onclick="calcInput('*')">*</button><br/>
+        <button onclick="calcInput('0')">0</button>
+        <button onclick="calcClear()">C</button>
+        <button onclick="calcEvaluate()">=</button>
+        <button onclick="calcInput('/')">/</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAINT -->
+  <div class="window" id="paint">
+    <div class="title-bar">
+      <span>Paint</span>
+      <button class="close-btn" onclick="closeApp('paint')">X</button>
+    </div>
+    <div class="window-content">
+      <canvas id="paint-canvas" width="250" height="150"></canvas>
     </div>
   </div>
 
@@ -182,13 +244,54 @@
     </div>
   </div>
 
-  <!-- TASKBAR -->
   <div class="taskbar">
     Mini Windows 1.0
   </div>
 </div>
 
 <script>
+  let calcExpression = "";
+
+  function calcInput(val) {
+    calcExpression += val;
+    document.getElementById("calc-display").value = calcExpression;
+  }
+
+  function calcClear() {
+    calcExpression = "";
+    document.getElementById("calc-display").value = "";
+  }
+
+  function calcEvaluate() {
+    try {
+      calcExpression = eval(calcExpression).toString();
+      document.getElementById("calc-display").value = calcExpression;
+    } catch {
+      calcExpression = "";
+      document.getElementById("calc-display").value = "Error";
+    }
+  }
+
+  const canvas = document.getElementById("paint-canvas");
+  const ctx = canvas.getContext("2d");
+  let painting = false;
+
+  canvas.addEventListener("mousedown", () => painting = true);
+  canvas.addEventListener("mouseup", () => painting = false);
+  canvas.addEventListener("mousemove", draw);
+
+  function draw(e) {
+    if (!painting) return;
+    const rect = canvas.getBoundingClientRect();
+    ctx.fillStyle = "black";
+    ctx.fillRect(e.clientX - rect.left, e.clientY - rect.top, 2, 2);
+  }
+
+  setTimeout(() => {
+    document.getElementById("boot-screen").style.display = "none";
+    document.getElementById("login-screen").style.display = "flex";
+  }, 2500);
+
   function checkLogin() {
     const user = document.getElementById("username").value;
     const pass = document.getElementById("password").value;
@@ -214,7 +317,6 @@
     el.style.zIndex = ++window.z || 100;
   }
 
-  // Dragging
   document.querySelectorAll(".window").forEach(win => {
     const title = win.querySelector(".title-bar");
     let isDragging = false, offsetX = 0, offsetY = 0;
