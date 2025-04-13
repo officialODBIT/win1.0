@@ -11,29 +11,54 @@
       height: 100%;
       width: 100%;
       overflow: hidden;
+      background: black;
+      color: white;
     }
 
-    #boot-screen {
+    #boot-menu, #boot-loading, #login-screen, #desktop, #bios-error {
       position: absolute;
       top: 0; left: 0;
-      height: 100%;
       width: 100%;
+      height: 100%;
+      display: none;
+    }
+
+    #boot-menu {
       background: black;
-      color: lime;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      color: white;
+      font-size: 24px;
+    }
+
+    .boot-option {
+      padding: 10px 20px;
+      margin: 10px;
+      border: 2px solid white;
+      width: 300px;
+      text-align: center;
+    }
+
+    .boot-option.selected {
+      background: white;
+      color: black;
+    }
+
+    #boot-loading {
+      background: black;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 100px 0;
+      font-size: 20px;
     }
 
     #login-screen {
-      position: absolute;
-      top: 0; left: 0;
-      height: 100%;
-      width: 100%;
       background: linear-gradient(135deg, #4682b4, #1e90ff);
-      display: none;
+      display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -47,7 +72,7 @@
       box-shadow: 2px 2px 8px #000;
     }
 
-    input {
+    input, button {
       margin: 5px;
       padding: 5px;
       border: none;
@@ -55,33 +80,13 @@
     }
 
     button {
-      padding: 5px 10px;
-      border: none;
-      border-radius: 4px;
       background: limegreen;
       color: white;
       cursor: pointer;
     }
 
     #desktop {
-      display: none;
-      width: 100vw;
-      height: 100vh;
       background: linear-gradient(135deg, #00bcd4, #009688);
-      position: relative;
-    }
-
-    .taskbar {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      height: 30px;
-      background: #222;
-      color: white;
-      display: flex;
-      align-items: center;
-      padding: 0 10px;
-      font-size: 14px;
     }
 
     .icon {
@@ -91,16 +96,15 @@
       padding: 10px;
       margin: 10px;
       text-align: center;
-      width: 60px;
+      width: 80px;
       border-radius: 5px;
       box-shadow: 2px 2px 3px #000;
       cursor: pointer;
-      transition: background 0.3s, opacity 0.3s;
+      transition: 0.3s;
     }
 
     .icon:hover {
-      background: #ccc;
-      opacity: 0.8;
+      opacity: 0.6;
     }
 
     .window {
@@ -139,30 +143,42 @@
       cursor: pointer;
     }
 
-    textarea {
+    textarea, canvas, input[type="text"] {
       width: 100%;
-      height: 150px;
-      border: none;
-      resize: none;
-      font-family: monospace;
     }
 
-    canvas {
-      border: 1px solid #000;
+    #bios-error {
+      background: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    #bios-error button {
+      margin-top: 20px;
+      background: red;
+      color: white;
     }
   </style>
 </head>
 <body>
 
-<!-- BOOT SCREEN -->
-<div id="boot-screen">
-  <p>Booting Mini Windows 1.0...</p>
-  <p>Checking memory... OK</p>
-  <p>Loading kernel... OK</p>
-  <p>Starting GUI... OK</p>
+<div id="boot-menu">
+  <div class="boot-option selected">Boot to Windows 1.0</div>
+  <div class="boot-option">BIOS</div>
 </div>
 
-<!-- LOGIN SCREEN -->
+<div id="boot-loading">
+  <div style="text-align: center; font-size: 32px;">Win 1.0</div>
+  <div style="text-align: center;">Booting... Please wait</div>
+</div>
+
+<div id="bios-error">
+  <div>Unable to configure. Please go to a computer manufacturer to fix.</div>
+  <button onclick="showBootMenu()">OK</button>
+</div>
+
 <div id="login-screen">
   <div id="login-box">
     <h2>Welcome</h2>
@@ -173,14 +189,12 @@
   </div>
 </div>
 
-<!-- DESKTOP -->
-<div id="desktop">
-  <div class="icon" onclick="openApp('notepad')">📝<br>Notepad</div>
-  <div class="icon" onclick="openApp('calculator')">🧮<br>Calc</div>
-  <div class="icon" onclick="openApp('paint')">🎨<br>Paint</div>
-  <div class="icon" onclick="openApp('about')">ℹ️<br>About</div>
+<div id="desktop" style="display: none;">
+  <div class="icon" onclick="openApp('notepad')">Notepad</div>
+  <div class="icon" onclick="openApp('calculator')">Calculator</div>
+  <div class="icon" onclick="openApp('paint')">Paint</div>
+  <div class="icon" onclick="openApp('about')">About</div>
 
-  <!-- NOTEPAD -->
   <div class="window" id="notepad">
     <div class="title-bar">
       <span>Notepad</span>
@@ -191,47 +205,46 @@
     </div>
   </div>
 
-  <!-- CALCULATOR -->
   <div class="window" id="calculator">
     <div class="title-bar">
       <span>Calculator</span>
       <button class="close-btn" onclick="closeApp('calculator')">X</button>
     </div>
     <div class="window-content">
-      <input type="text" id="calc-display" readonly style="width:100%;margin-bottom:5px;" />
+      <input type="text" id="calc-display" readonly>
       <div>
-        <button onclick="calcInput('1')">1</button>
-        <button onclick="calcInput('2')">2</button>
-        <button onclick="calcInput('3')">3</button>
-        <button onclick="calcInput('+')">+</button><br/>
-        <button onclick="calcInput('4')">4</button>
-        <button onclick="calcInput('5')">5</button>
-        <button onclick="calcInput('6')">6</button>
-        <button onclick="calcInput('-')">-</button><br/>
         <button onclick="calcInput('7')">7</button>
         <button onclick="calcInput('8')">8</button>
         <button onclick="calcInput('9')">9</button>
+        <button onclick="calcInput('/')">/</button><br/>
+        <button onclick="calcInput('4')">4</button>
+        <button onclick="calcInput('5')">5</button>
+        <button onclick="calcInput('6')">6</button>
         <button onclick="calcInput('*')">*</button><br/>
+        <button onclick="calcInput('1')">1</button>
+        <button onclick="calcInput('2')">2</button>
+        <button onclick="calcInput('3')">3</button>
+        <button onclick="calcInput('-')">-</button><br/>
         <button onclick="calcInput('0')">0</button>
+        <button onclick="calcInput('.')">.</button>
+        <button onclick="calcEquals()">=</button>
+        <button onclick="calcInput('+')">+</button>
         <button onclick="calcClear()">C</button>
-        <button onclick="calcEvaluate()">=</button>
-        <button onclick="calcInput('/')">/</button>
       </div>
     </div>
   </div>
 
-  <!-- PAINT -->
   <div class="window" id="paint">
     <div class="title-bar">
       <span>Paint</span>
       <button class="close-btn" onclick="closeApp('paint')">X</button>
     </div>
     <div class="window-content">
-      <canvas id="paint-canvas" width="250" height="150"></canvas>
+      <input type="color" id="colorPicker" value="#000000" /><br/>
+      <canvas id="paintCanvas" width="280" height="150" style="border:1px solid #000;"></canvas>
     </div>
   </div>
 
-  <!-- ABOUT -->
   <div class="window" id="about">
     <div class="title-bar">
       <span>About</span>
@@ -243,54 +256,56 @@
       <p>© 2025</p>
     </div>
   </div>
-
-  <div class="taskbar">
-    Mini Windows 1.0
-  </div>
 </div>
 
 <script>
-  let calcExpression = "";
+  let selectedOption = 0;
+  const options = document.querySelectorAll('.boot-option');
+  let bootState = 'menu';
 
-  function calcInput(val) {
-    calcExpression += val;
-    document.getElementById("calc-display").value = calcExpression;
+  function showBootMenu() {
+    document.getElementById('bios-error').style.display = 'none';
+    document.getElementById('boot-menu').style.display = 'flex';
+    bootState = 'menu';
+    updateSelection();
   }
 
-  function calcClear() {
-    calcExpression = "";
-    document.getElementById("calc-display").value = "";
+  function bootToOS() {
+    document.getElementById('boot-menu').style.display = 'none';
+    document.getElementById('boot-loading').style.display = 'flex';
+    setTimeout(() => {
+      document.getElementById('boot-loading').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+    }, 3000);
   }
 
-  function calcEvaluate() {
-    try {
-      calcExpression = eval(calcExpression).toString();
-      document.getElementById("calc-display").value = calcExpression;
-    } catch {
-      calcExpression = "";
-      document.getElementById("calc-display").value = "Error";
+  function biosError() {
+    document.getElementById('boot-menu').style.display = 'none';
+    document.getElementById('bios-error').style.display = 'flex';
+  }
+
+  function updateSelection() {
+    options.forEach((el, i) => {
+      el.classList.toggle('selected', i === selectedOption);
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (bootState === 'menu') {
+      if (e.key === 'ArrowDown') {
+        selectedOption = (selectedOption + 1) % options.length;
+        updateSelection();
+      } else if (e.key === 'ArrowUp') {
+        selectedOption = (selectedOption - 1 + options.length) % options.length;
+        updateSelection();
+      } else if (e.key === 'Enter') {
+        selectedOption === 0 ? bootToOS() : biosError();
+      }
     }
-  }
+  });
 
-  const canvas = document.getElementById("paint-canvas");
-  const ctx = canvas.getContext("2d");
-  let painting = false;
-
-  canvas.addEventListener("mousedown", () => painting = true);
-  canvas.addEventListener("mouseup", () => painting = false);
-  canvas.addEventListener("mousemove", draw);
-
-  function draw(e) {
-    if (!painting) return;
-    const rect = canvas.getBoundingClientRect();
-    ctx.fillStyle = "black";
-    ctx.fillRect(e.clientX - rect.left, e.clientY - rect.top, 2, 2);
-  }
-
-  setTimeout(() => {
-    document.getElementById("boot-screen").style.display = "none";
-    document.getElementById("login-screen").style.display = "flex";
-  }, 2500);
+  // Start boot
+  document.getElementById('boot-menu').style.display = 'flex';
 
   function checkLogin() {
     const user = document.getElementById("username").value;
@@ -337,6 +352,41 @@
 
     document.addEventListener("mouseup", () => isDragging = false);
   });
+
+  let calcExp = "";
+  function calcInput(val) {
+    calcExp += val;
+    document.getElementById("calc-display").value = calcExp;
+  }
+  function calcClear() {
+    calcExp = "";
+    document.getElementById("calc-display").value = "";
+  }
+  function calcEquals() {
+    try {
+      calcExp = eval(calcExp).toString();
+      document.getElementById("calc-display").value = calcExp;
+    } catch {
+      document.getElementById("calc-display").value = "Error";
+      calcExp = "";
+    }
+  }
+
+  const canvas = document.getElementById('paintCanvas');
+  const ctx = canvas.getContext('2d');
+  let painting = false;
+  const colorPicker = document.getElementById('colorPicker');
+
+  canvas.addEventListener('mousedown', () => painting = true);
+  canvas.addEventListener('mouseup', () => painting = false);
+  canvas.addEventListener('mousemove', draw);
+
+  function draw(e) {
+    if (!painting) return;
+    const rect = canvas.getBoundingClientRect();
+    ctx.fillStyle = colorPicker.value;
+    ctx.fillRect(e.clientX - rect.left, e.clientY - rect.top, 2, 2);
+  }
 </script>
 </body>
 </html>
